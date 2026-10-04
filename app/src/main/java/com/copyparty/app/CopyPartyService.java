@@ -79,7 +79,11 @@ public class CopyPartyService extends Service {
         File py = new File(dir, "bin/python3");
         File pyz = new File(dir, "web/copyparty.pyz");
         if (!py.exists() || !pyz.exists()) {
-            Log.e(TAG, "copyparty 未解压，无法启动");
+            Log.e(TAG, "copyparty 未解压，无法启动: " + dir.getAbsolutePath());
+            appendLog("=== 启动失败 @ " + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(new java.util.Date()) + " ===");
+            appendLog("运行包未解压或不完整: " + dir.getAbsolutePath());
+            appendLog("python3 存在=" + py.exists() + ", copyparty.pyz 存在=" + pyz.exists());
+            appendLog("请回到主界面重新点启动（会自动解压）");
             return;
         }
         int port = getSharedPreferences("copyparty", MODE_PRIVATE).getInt("port", 5301);
@@ -179,6 +183,12 @@ public class CopyPartyService extends Service {
 
     public static File logFile(Context ctx) {
         return new File(ctx.getFilesDir(), "copyparty.log");
+    }
+
+    private void appendLog(String line) {
+        try (FileOutputStream fos = new FileOutputStream(logFile(this), true)) {
+            fos.write((line + "\n").getBytes());
+        } catch (Exception ignored) {}
     }
 
     private void createChannel() {

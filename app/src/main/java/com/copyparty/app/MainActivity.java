@@ -1,26 +1,30 @@
 package com.copyparty.app;
 
+import android.Manifest;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.Gravity;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
     private static final String PREFS = "copyparty";
+    private static final int REQ_NOTIF = 1001;
 
     private TextView tvStatus, tvDetail;
     private View statusDot;
@@ -48,14 +52,13 @@ public class MainActivity extends AppCompatActivity {
         TextView btnStop = findViewById(R.id.btn_stop);
         LinearLayout rowLog = findViewById(R.id.row_log);
 
-        // 开机自启开关
         SharedPreferences sp = getSharedPreferences(PREFS, MODE_PRIVATE);
         swAutostart.setChecked(sp.getBoolean("autostart", false));
         etPort.setText(String.valueOf(sp.getInt("port", 5301)));
         swAutostart.setOnCheckedChangeListener((b, checked) ->
                 sp.edit().putBoolean("autostart", checked).apply());
 
-        btnStart.setOnClickListener(v -> startServiceAction("com.copyparty.app.action.START"));
+        btnStart.setOnClickListener(v -> onStartClicked());
         btnStop.setOnClickListener(v -> {
             startService(new Intent(this, CopyPartyService.class)
                     .setAction("com.copyparty.app.action.STOP"));
@@ -63,7 +66,16 @@ public class MainActivity extends AppCompatActivity {
         });
         rowLog.setOnClickListener(v -> showLogDialog());
 
-        // 确保运行包解压（后台）
+        // Android 13+ 通知权限
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_NOTIF);
+            }
+        }
+
+        // 后台预解压运行包
         new Thread(() -> {
             if (!AssetExtractor.isReady(this)) {
                 AssetExtractor.extract(this);
@@ -86,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
         handler.removeCallbacks(refreshTask);
     }
 
-    private void startServiceAction(String action) {
+    private void onStartClicked() {
         int port;
         try {
             port = Integer.parseInt(etPort.getText().toString().trim());
@@ -96,11 +108,40 @@ public class MainActivity extends AppCompatActivity {
         }
         getSharedPreferences(PREFS, MODE_PRIVATE)
                 .edit().putInt("port", port).apply();
-        Intent i = new Intent(this, CopyPartyService.class).setAction(action);
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            startForegroundService(i);
-        } else {
-            startService(i);
+
+        // 运行包未解压完：先解压，解压完自动启动
+        if (!AssetExtractor.isReady(this)) {
+            Toast.makeText(this, "正在解压运行包，请稍候...", Toast.LENGTH_LONG).show();
+            tvStatus.setText("解压中…");
+            tvDetail.setText("首次启动需解压约30MB运行包，请耐心等待");
+            new Thread(() -> {
+                boolean ok = AssetExtractor.extract(this);
+                handler.post(() -> {
+                    if (ok) {
+                        Toast.makeText(this, "解压完成，正在启动...", Toast.LENGTH_SHORT).show();
+                        doStartService();
+                    } else {
+                        Toast.makeText(this, "解压失败，请点日志查看", Toast.LENGTH_LONG).show();
+                    }
+                    refreshUi();
+                });
+            }).start();
+            return;
+        }
+        doStartService();
+    }
+
+    private void doStartService() {
+        Intent i = new Intent(this, CopyPartyService.class)
+                .setAction("com.copyparty.app.action.START");
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(i);
+            } else {
+                startService(i);
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "启动失败: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
         handler.postDelayed(this::refreshUi, 1500);
     }
@@ -142,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
             i.putExtra(Intent.EXTRA_TEXT, content);
             startActivity(Intent.createChooser(i, "分享日志"));
         } catch (Exception e) {
-            android.widget.Toast.makeText(this, "分享失败", android.widget.Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "分享失败", Toast.LENGTH_SHORT).show();
         }
     }
 
