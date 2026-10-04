@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CopyParty 网盘</string>
+    <string name="start">启动服务</string>
+    <string name="stop">停止服务</string>
+    <string name="running">运行中</string>
+    <string name="stopped">已停止</string>
+    <string name="starting">启动中…</string>
+    <string name="port_label">端口</string>
+    <string name="autostart_label">开机自启</string>
+    <string name="log_label">日志</string>
+    <string name="access_hint">浏览器访问 http://本机IP:端口</string>
+</resources>

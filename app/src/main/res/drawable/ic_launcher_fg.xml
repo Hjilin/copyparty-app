@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 简洁的服务器/网盘图标 -->
+    <path
+        android:fillColor="#FB7A3D"
+        android:pathData="M54,14 L94,32 L94,76 L54,94 L14,76 L14,32 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,30 L78,42 L78,66 L54,78 L30,66 L30,42 Z" />
+    <path
+        android:fillColor="#FB7A3D"
+        android:pathData="M44,48 L64,48 L64,56 L44,56 Z M44,62 L64,62 L64,70 L44,70 Z" />
+</vector>
