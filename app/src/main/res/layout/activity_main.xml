@@ -116,6 +116,19 @@
                     android:clickable="true" />
             </LinearLayout>
 
+            <!-- 打开后台（内置 WebView） -->
+            <TextView
+                android:id="@+id/btn_web"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="12dp"
+                android:text="打开网盘后台"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:gravity="center"
+                android:background="@drawable/bg_btn_web"
+                android:clickable="true" />
+
             <!-- 设置卡片 -->
             <LinearLayout
                 android:layout_width="match_parent"

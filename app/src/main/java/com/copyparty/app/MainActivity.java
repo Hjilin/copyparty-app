@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         swAutostart = findViewById(R.id.sw_autostart);
         TextView btnStart = findViewById(R.id.btn_start);
         TextView btnStop = findViewById(R.id.btn_stop);
+        TextView btnWeb = findViewById(R.id.btn_web);
         LinearLayout rowLog = findViewById(R.id.row_log);
 
         SharedPreferences sp = getSharedPreferences(PREFS, MODE_PRIVATE);
@@ -66,6 +67,13 @@ public class MainActivity extends AppCompatActivity {
             refreshUi();
         });
         rowLog.setOnClickListener(v -> showLogDialog());
+        btnWeb.setOnClickListener(v -> {
+            if (!CopyPartyService.isRunning()) {
+                Toast.makeText(this, "服务未启动，请先点「启动服务」", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            startActivity(new Intent(this, WebActivity.class));
+        });
 
         // Android 13+ 通知权限
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

@@ -35,6 +35,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".WebActivity"
+            android:exported="false"
+            android:label="网盘后台" />
+
         <service
             android:name=".CopyPartyService"
             android:exported="false"
