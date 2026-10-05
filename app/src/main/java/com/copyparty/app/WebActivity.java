@@ -9,11 +9,15 @@ import android.os.Build;
 import android.os.Bundle;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import androidx.core.app.NotificationCompat;
 import org.json.JSONArray;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class WebActivity extends Activity {
     private WebView web;
@@ -38,6 +42,30 @@ public class WebActivity extends Activity {
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest req) { return false; }
+
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                String url = request.getUrl().toString();
+                if (url.startsWith("http://127.0.0.1:5301")) {
+                    try {
+                        URL u = new URL(url);
+                        HttpURLConnection conn = (HttpURLConnection) u.openConnection();
+                        conn.setConnectTimeout(5000);
+                        conn.setReadTimeout(10000);
+                        String method = request.getMethod();
+                        if ("POST".equals(method) || "PUT".equals(method) || "DELETE".equals(method) || "MOVE".equals(method) || "MKCOL".equals(method)) {
+                            conn.setRequestMethod("GET");
+                        }
+                        conn.setRequestProperty("User-Agent", "CopyPartyApp");
+                        InputStream is = conn.getInputStream();
+                        WebResourceResponse resp = new WebResourceResponse("text/plain; charset=utf-8", "utf-8", is);
+                        return resp;
+                    } catch (Exception e) {
+                        return null;
+                    }
+                }
+                return super.shouldInterceptRequest(view, request);
+            }
         });
         web.loadUrl("file:///android_asset/web/index.html");
     }
