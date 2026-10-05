@@ -6,7 +6,7 @@
 <title>我的网盘</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f6f8;color:#1a1a1a;padding-bottom:80px}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f6f8;color:#1a1a1a;padding-bottom:140px}
 .page{display:none}.page.active{display:block}
 
 .header{background:#fff;padding:16px 16px 12px;position:sticky;top:0;z-index:10;box-shadow:0 1px 4px rgba(0,0,0,.06)}
@@ -45,7 +45,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .upload-item{display:flex;justify-content:space-between;padding:4px 0}
 .upload-item .ok{color:#52c41a}.upload-item .ng{color:#ff4d4f}.upload-item .busy{color:#fa8c16}
 
-.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:12px 16px 24px;box-shadow:0 -2px 12px rgba(0,0,0,.06);display:flex;gap:10px}
+.bottom-bar{position:fixed;bottom:60px;left:0;right:0;background:#fff;padding:10px 16px;box-shadow:0 -2px 12px rgba(0,0,0,.06);display:flex;gap:10px;z-index:98}
 .btn{flex:1;padding:13px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
 .btn-primary{background:linear-gradient(135deg,#4f8cff,#7b61ff);color:#fff}
 .btn-outline{background:#f0f1f3;color:#333}
@@ -115,7 +115,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
   </div>
   <div class="file-list" id="fileList"><div class="loading">加载中...</div></div>
   <div class="upload-bar" id="uploadBar" style="display:none"></div>
-  <div id="moveBar" style="display:none;position:fixed;bottom:80px;left:0;right:0;background:#4f8cff;color:#fff;padding:12px 16px;z-index:99;display:none;align-items:center;justify-content:space-between">
+  <div id="moveBar" style="display:none;position:fixed;bottom:130px;left:0;right:0;background:#4f8cff;color:#fff;padding:12px 16px;z-index:99;display:none;align-items:center;justify-content:space-between">
     <span style="font-size:14px">移动到当前目录？</span>
     <div style="display:flex;gap:8px">
       <button onclick="cancelMove()" style="padding:8px 16px;border:none;border-radius:8px;background:rgba(255,255,255,.2);color:#fff;cursor:pointer">取消</button>
