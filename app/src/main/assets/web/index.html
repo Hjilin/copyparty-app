@@ -343,7 +343,8 @@ var ICONS = {
 
 function loadDir(path) {
   cwd = path;
-  document.getElementById('fileList').innerHTML = '<div class="loading">加载中...</div>';
+  var dbg = 'typeof AndroidHttp=' + (typeof AndroidHttp) + ' BASE=' + BASE;
+  document.getElementById('fileList').innerHTML = '<div class="loading" style="color:red;font-size:12px">' + dbg + '</div>';
   try {
     var raw = AndroidHttp.request('GET', BASE + path);
     var r = JSON.parse(raw);
