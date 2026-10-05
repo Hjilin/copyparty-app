@@ -20,8 +20,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.List;
 
 /** 前台服务：用 linker 启动 copyparty python，日志写到 filesDir/copyparty.log */
 public class CopyPartyService extends Service {
@@ -57,7 +55,7 @@ public class CopyPartyService extends Service {
         try {
             Notification n = new NotificationCompat.Builder(this, CHANNEL_ID)
                     .setContentTitle("CopyParty 网盘")
-                    .setContentText(isRunning() ? "运行中 · 端口 " + currentPort : "已停止")
+                    .setContentText(isRunning() ? "运行中 · 端口 " + currentPort : "正在启动...")
                     .setSmallIcon(android.R.drawable.ic_menu_manage)
                     .setOngoing(true)
                     .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -69,7 +67,7 @@ public class CopyPartyService extends Service {
             }
         } catch (Exception e) {
             Log.e(TAG, "startForeground 失败", e);
-            try { stopForeground(false); } catch (Exception ignored) {}
+            appendLog("!!! 通知前台启动失败: " + e.getMessage() + "（请检查通知权限是否开启）");
         }
     }
 

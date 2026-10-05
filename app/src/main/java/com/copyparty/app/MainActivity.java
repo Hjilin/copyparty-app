@@ -172,8 +172,17 @@ public class MainActivity extends AppCompatActivity {
             }
         } catch (Exception e) {
             Toast.makeText(this, "启动失败: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            return;
         }
-        handler.postDelayed(this::refreshUi, 1500);
+        // 等5秒后检查是否真的起来了
+        handler.postDelayed(() -> {
+            refreshUi();
+            if (!CopyPartyService.isRunning()) {
+                Toast.makeText(this, "启动失败，请点下方「日志」查看原因", Toast.LENGTH_LONG).show();
+                tvStatus.setText("启动失败");
+                tvDetail.setText("点日志查看错误");
+            }
+        }, 5000);
     }
 
     private void refreshUi() {
