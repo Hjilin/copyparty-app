@@ -18,10 +18,12 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
-/** 前台服务：用 linker 启动 copyparty python，日志写到 filesDir/copyparty.log */
 public class CopyPartyService extends Service {
     private static final String TAG = "CopyPartySvc";
     private static final String CHANNEL_ID = "copyparty";
@@ -31,22 +33,31 @@ public class CopyPartyService extends Service {
     private static volatile boolean running = false;
     private static Thread logReader;
     private static int currentPort = 5301;
+    private static final List<String> opLog = new ArrayList<>();
+    private static final int MAX_LOG = 500;
 
     @Override
-    public void onCreate() {
-        super.onCreate();
-        createChannel();
+    public void onCreate() { super.onCreate(); createChannel(); }
+
+    private void createChannel() {
+        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            NotificationChannel ch = new NotificationChannel(CHANNEL_ID, "CopyParty", NotificationManager.IMPORTANCE_LOW);
+            ch.setDescription("网盘服务运行通知");
+            nm.createNotificationChannel(ch);
+            NotificationChannel ch2 = new NotificationChannel("events", "事件通知", NotificationManager.IMPORTANCE_DEFAULT);
+            ch2.setDescription("上传下载登录等事件");
+            nm.createNotificationChannel(ch2);
+        }
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        // 常驻通知
         startForegroundInternal();
         if (intent != null && "com.copyparty.app.action.STOP".equals(intent.getAction())) {
             stopCopyParty();
             return START_NOT_STICKY;
         }
-        // 启动（若未运行）
         startCopyParty();
         return START_STICKY;
     }
@@ -67,7 +78,6 @@ public class CopyPartyService extends Service {
             }
         } catch (Exception e) {
             Log.e(TAG, "startForeground 失败", e);
-            appendLog("!!! 通知前台启动失败: " + e.getMessage() + "（请检查通知权限是否开启）");
         }
     }
 
@@ -77,130 +87,111 @@ public class CopyPartyService extends Service {
         File py = new File(dir, "bin/python3");
         File pyz = new File(dir, "web/copyparty.pyz");
         if (!py.exists() || !pyz.exists()) {
-            Log.e(TAG, "copyparty 未解压，无法启动: " + dir.getAbsolutePath());
-            appendLog("=== 启动失败 @ " + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(new java.util.Date()) + " ===");
-            appendLog("运行包未解压或不完整: " + dir.getAbsolutePath());
-            appendLog("python3 存在=" + py.exists() + ", copyparty.pyz 存在=" + pyz.exists());
-            appendLog("请回到主界面重新点启动（会自动解压）");
+            appendLog("运行包未解压");
             return;
         }
-        int port = getSharedPreferences("copyparty", MODE_PRIVATE).getInt("port", 5301);
-        currentPort = port;
-
         try {
-            // ELF 检测：用 linker64 启动
-            String linker = new File("/system/bin/linker64").exists() ? "/system/bin/linker64" : "/system/bin/linker";
-            List<String> cmdList = new ArrayList<>();
-            cmdList.add(linker);
-            cmdList.add(py.getAbsolutePath());
-            cmdList.add(pyz.getAbsolutePath());
-            cmdList.add("-p");
-            cmdList.add(String.valueOf(port));
-            cmdList.add("-q");
-            // 环境变量：LD_LIBRARY_PATH 指向 lib，PYTHONHOME 指向运行目录
-            List<String> envList = new ArrayList<>();
-            envList.add("LD_LIBRARY_PATH=" + new File(dir, "lib").getAbsolutePath());
-            envList.add("PYTHONHOME=" + dir.getAbsolutePath());
-            envList.add("PYTHONUTF8=1");
-            envList.add("HOME=" + dir.getAbsolutePath());
-
-            ProcessBuilder pb = new ProcessBuilder(cmdList);
-            pb.environment().putAll(System.getenv());
-            for (String e : envList) {
-                String[] kv = e.split("=", 2);
-                if (kv.length == 2) pb.environment().put(kv[0], kv[1]);
-            }
-            pb.environment().remove("LD_PRELOAD");
+            ProcessBuilder pb = new ProcessBuilder();
+            List<String> cmd = new ArrayList<>();
+            cmd.add("/system/bin/linker64");
+            cmd.add(py.getAbsolutePath());
+            cmd.add(pyz.getAbsolutePath());
+            cmd.add("-p"); cmd.add(String.valueOf(currentPort));
+            cmd.add("-q");
+            pb.command(cmd);
             pb.directory(dir);
-            pb.redirectErrorStream(true);
-
+            pb.environment().put("LD_LIBRARY_PATH", dir.getAbsolutePath() + "/lib");
+            pb.environment().put("PYTHONHOME", dir.getAbsolutePath());
+            pb.environment().put("PYTHONUTF8", "1");
+            pb.environment().put("PYTHONUNBUFFERED", "1");
+            pb.environment().put("HOME", dir.getAbsolutePath());
             process = pb.start();
-            appendLog("!!! process started, pid=" + process.hashCode());
             running = true;
-
-            // 日志读取线程
-            final File logFile = new File(getFilesDir(), "copyparty.log");
-            final InputStream is = process.getInputStream();
-            logReader = new Thread(() -> {
-                try (BufferedReader br = new BufferedReader(new InputStreamReader(is));
-                     FileOutputStream fos = new FileOutputStream(logFile, true)) {
-                    fos.write(("=== copyparty started @ " + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(new java.util.Date()) + " ===\n").getBytes());
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        fos.write((line + "\n").getBytes());
-                        fos.flush();
-                    }
-                } catch (Exception ignored) {}
+            appendLog("=== copyparty 启动 @ " + now() + " ===");
+            startLogReader(process.getInputStream());
+            startLogReader(process.getErrorStream());
+            new Thread(() -> {
+                try { process.waitFor(); } catch (Exception e) {}
                 running = false;
-                int exitCode = -999;
-                try { exitCode = process.exitValue(); } catch (Exception ignored) {}
-                try (FileOutputStream fos = new FileOutputStream(logFile, true)) {
-                    fos.write(("=== copyparty exited, exitCode=" + exitCode + " ===\n").getBytes());
-                } catch (Exception ignored) {}
-            }, "cp-log");
-            logReader.setDaemon(true);
-            logReader.start();
-
-            // 等待端口就绪
-            for (int i = 0; i < 40; i++) {
-                if (portOpen(port)) break;
-                try { Thread.sleep(300); } catch (Exception ignored) {}
-            }
-            Log.i(TAG, "copyparty 已启动, port=" + port);
+                appendLog("=== copyparty 退出 ===");
+            }).start();
         } catch (Exception e) {
-            Log.e(TAG, "启动 copyparty 失败", e);
-            running = false;
+            appendLog("启动失败: " + e.getMessage());
+            Log.e(TAG, "start failed", e);
         }
     }
 
-    public static void stopCopyParty() {
-        if (process != null) {
-            try { process.destroyForcibly(); } catch (Exception ignored) {}
-            try { process.waitFor(2, java.util.concurrent.TimeUnit.SECONDS); } catch (Exception ignored) {}
-            process = null;
+    private void startLogReader(InputStream is) {
+        Thread t = new Thread(() -> {
+            try {
+                BufferedReader br = new BufferedReader(new InputStreamReader(is));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    appendLog(line);
+                    detectEvent(line);
+                }
+            } catch (Exception e) {}
+        });
+        t.start();
+    }
+
+    private void detectEvent(String line) {
+        String l = line.toLowerCase();
+        String title = null, msg = null;
+        if (l.contains("upload") || l.contains("put ") || l.contains("post ")) {
+            title = "文件上传"; msg = line.trim();
+        } else if (l.contains("download") || l.contains("get ")) {
+            // 太频繁，不通知下载
+        } else if (l.contains("login") || l.contains("auth") || l.contains("password")) {
+            title = "登录事件"; msg = line.trim();
+        } else if (l.contains("delete") || l.contains("remove")) {
+            title = "文件删除"; msg = line.trim();
         }
-        running = false;
+        if (title != null) sendEventNotif(title, msg);
     }
 
-    public static boolean isRunning() {
-        if (process == null) return false;
+    private void sendEventNotif(String title, String msg) {
         try {
-            if (process.isAlive()) return true;
-        } catch (Exception ignored) {}
+            NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            Notification n = new NotificationCompat.Builder(this, "events")
+                    .setContentTitle(title)
+                    .setContentText(msg.length() > 80 ? msg.substring(0, 80) : msg)
+                    .setSmallIcon(android.R.drawable.stat_notify_sync)
+                    .setAutoCancel()
+                    .build();
+            nm.notify((int) System.currentTimeMillis(), n);
+        } catch (Exception e) {}
+    }
+
+    private void stopCopyParty() {
         running = false;
-        return false;
+        if (process != null) { process.destroy(); process = null; }
+        appendLog("=== 已停止 ===");
     }
 
-    private static boolean portOpen(int port) {
+    public static boolean isRunning() { return running; }
+
+    public static synchronized List<String> getOpLog() { return new ArrayList<>(opLog); }
+
+    private void appendLog(String s) {
+        String line = "[" + now() + "] " + s;
+        synchronized (opLog) {
+            opLog.add(line);
+            if (opLog.size() > MAX_LOG) opLog.remove(0);
+        }
         try {
-            Socket s = new Socket();
-            s.connect(new InetSocketAddress("127.0.0.1", port), 600);
-            s.close();
-            return true;
-        } catch (Exception e) { return false; }
+            File f = new File(getFilesDir(), "copyparty.log");
+            FileOutputStream fos = new FileOutputStream(f, true);
+            fos.write((line + "\n").getBytes("UTF-8"));
+            fos.close();
+        } catch (Exception e) {}
+        Log.i(TAG, s);
     }
 
-    public static File logFile(Context ctx) {
-        return new File(ctx.getFilesDir(), "copyparty.log");
-    }
-
-    private void appendLog(String line) {
-        try (FileOutputStream fos = new FileOutputStream(logFile(this), true)) {
-            fos.write((line + "\n").getBytes());
-        } catch (Exception ignored) {}
-    }
-
-    private void createChannel() {
-        NotificationChannel ch = new NotificationChannel(CHANNEL_ID, "CopyParty", NotificationManager.IMPORTANCE_LOW);
-        NotificationManager nm = getSystemService(NotificationManager.class);
-        if (nm != null) nm.createNotificationChannel(ch);
+    private String now() {
+        return new SimpleDateFormat("MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
     }
 
     @Override
     public IBinder onBind(Intent intent) { return null; }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
 }
