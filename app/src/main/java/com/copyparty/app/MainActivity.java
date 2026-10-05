@@ -64,7 +64,7 @@ public class MainActivity extends Activity {
     }
 
     private void goNext() {
-        CopyPartyService.start(this);
+        startService(new Intent(this, CopyPartyService.class));
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
