@@ -83,7 +83,12 @@ public class CopyPartyService extends Service {
         File dir = AssetExtractor.runDir(this);
         File py = new File(dir, "bin/python3");
         File pyz = new File(dir, "web/copyparty.pyz");
-        if (!py.exists() || !pyz.exists()) { appendLog("运行包未解压"); return; }
+        if (!py.exists() || !pyz.exists()) {
+            appendLog("正在解压运行包...");
+            boolean ok = AssetExtractor.extract(this);
+            if (!ok) { appendLog("解压失败"); return; }
+            appendLog("解压完成，启动中...");
+        }
         try {
             List<String> cmd = new ArrayList<>();
             cmd.add("/system/bin/linker64");
