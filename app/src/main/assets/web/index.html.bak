@@ -344,12 +344,10 @@ var ICONS = {
 function loadDir(path) {
   cwd = path;
   document.getElementById('fileList').innerHTML = '<div class="loading">加载中...</div>';
-  var r = JSON.parse(AndroidHttp.request('GET', BASE + path));
-  if (r.code >= 200 && r.code < 300) {
-    renderList(r.body);
-  } else {
-    document.getElementById('fileList').innerHTML = '<div class="loading">加载失败 (code=' + r.code + ')</div>';
-  }
+  fetch(BASE + path)
+    .then(function(r){ return r.text(); })
+    .then(function(text){ renderList(text); })
+    .catch(function(e){ document.getElementById('fileList').innerHTML = '<div class="loading">加载失败</div>'; });
 }
 
 function renderList(text) {
@@ -395,16 +393,16 @@ function downloadFile(name) {
 
 function delFile(name) {
   if (!confirm('删除 ' + name + '？')) return;
-  AndroidHttp.request('DELETE', BASE + cwd + name);
-  loadDir(cwd);
+  fetch(BASE + cwd + name, {method: 'DELETE'})
+    .then(function(){ loadDir(cwd); })
     .catch(function(){ alert('删除失败'); });
 }
 
 function renameFile(name) {
   var nn = prompt('重命名为:', name);
   if (!nn || nn === name) return;
-  AndroidHttp.requestWithHeader('MOVE', BASE + cwd + name, 'Destination', cwd + nn);
-  loadDir(cwd);
+  fetch(BASE + cwd + name, {method: 'MOVE', headers: {'Destination': cwd + nn}})
+    .then(function(){ loadDir(cwd); })
     .catch(function(){ alert('重命名失败'); });
 }
 
@@ -442,23 +440,33 @@ function cancelMove() {
 function mkdir() {
   var name = prompt('文件夹名称:');
   if (!name) return;
-  AndroidHttp.request('MKCOL', BASE + cwd + name + '/'); loadDir(cwd);
+  fetch(BASE + cwd + name + '/', {method: 'MKCOL'}).then(function(){ loadDir(cwd); }).catch(function(){ alert('创建失败'); });
 }
 
-window.__onFilePicked = function(path, name) {
-  if (!path) return;
+document.getElementById('uploadInput').addEventListener('change', function(e){
+  var files = e.target.files;
+  if (!files.length) return;
   var bar = document.getElementById('uploadBar');
   bar.style.display = 'block';
-  bar.innerHTML = '<div class="upload-item"><span>' + name + '</span><span class="busy">上传中...</span></div>';
-  var r = JSON.parse(AndroidHttp.uploadFile(BASE + cwd, path, name));
-  if (r.code >= 200 && r.code < 300) {
-    bar.innerHTML = '<div class="upload-item"><span>' + name + '</span><span class="ok">完成</span></div>';
-    if (window.AndroidNotify) AndroidNotify.show('上传完成', name);
-    setTimeout(function(){ bar.style.display = 'none'; loadDir(cwd); }, 800);
-  } else {
-    bar.innerHTML = '<div class="upload-item"><span>' + name + '</span><span class="ng">失败</span></div>';
-  }
-};
+  var done = 0;
+  for (var i = 0; i < files.length; i++) {
+    (function(f) {
+      var fd = new FormData();
+      fd.append('file', f);
+      bar.innerHTML = '<div class="upload-item"><span>' + f.name + '</span><span class="busy">上传中...</span></div>';
+      fetch(BASE + cwd, {method: 'POST', body: fd})
+        .then(function(){
+          done++;
+          bar.innerHTML = '<div class="upload-item"><span>' + f.name + '</span><span class="ok">完成</span></div>';
+          if (done === files.length) {
+            setTimeout(function(){ bar.style.display = 'none'; loadDir(cwd); }, 800);
+            if (window.AndroidNotify) AndroidNotify.show('上传完成', files.length + ' 个文件已上传');
+          }
+        })
+        .catch(function(){
+          done++;
+          bar.innerHTML = '<div class="upload-item"><span>' + f.name + '</span><span class="ng">失败</span></div>';
+        });
     })(files[i]);
   }
 });
