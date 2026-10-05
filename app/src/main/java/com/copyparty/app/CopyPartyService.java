@@ -95,7 +95,7 @@ public class CopyPartyService extends Service {
             cmd.add(py.getAbsolutePath());
             cmd.add(pyz.getAbsolutePath());
             cmd.add("-p"); cmd.add(String.valueOf(currentPort));
-            cmd.add("-q");
+            cmd.add("-q"); cmd.add("--cors"); cmd.add("*");
             ProcessBuilder pb = new ProcessBuilder(cmd);
             pb.directory(dir);
             pb.environment().put("LD_LIBRARY_PATH", dir.getAbsolutePath() + "/lib");
