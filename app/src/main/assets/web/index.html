@@ -20,17 +20,19 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .storage{margin:8px 16px;background:#fff;border-radius:14px;padding:14px}
 .storage-info{display:flex;justify-content:space-between;font-size:13px;color:#666;margin-bottom:8px}
 .storage-bar{height:6px;background:#e8e9eb;border-radius:3px;overflow:hidden}
-.storage-bar-fill{height:100%;width:46%;background:linear-gradient(90deg,#4f8cff,#7b61ff);border-radius:3px}
+.storage-bar-fill{height:100%;width:46%;background:linear-gradient(90deg,#4f8cff,#7b61ff);border-radius:3px;transition:width .3s}
 
 .file-list{padding:8px 12px}
-.file-item{background:#fff;border-radius:14px;margin-bottom:8px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 2px rgba(0,0,0,.03);cursor:pointer}
-.file-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.file-item{background:#fff;border-radius:14px;margin-bottom:8px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.file-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer}
 .file-icon svg{width:24px;height:24px}
-.file-info{flex:1;min-width:0}
+.file-info{flex:1;min-width:0;cursor:pointer}
 .file-name{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .file-meta{font-size:12px;color:#999;margin-top:3px}
-.file-del{color:#ccc;padding:8px}
-.file-del svg{width:18px;height:18px}
+.file-actions{display:flex;gap:4px}
+.file-btn{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#f5f6f8;border:none;cursor:pointer}
+.file-btn svg{width:18px;height:18px;fill:#666}
+.file-btn.del{background:#fff1f0}.file-btn.del svg{fill:#ff4d4f}
 .folder{background:#e8f0ff}.folder svg{fill:#4f8cff}
 .video{background:#ffe8e8}.video svg{fill:#ff6b6b}
 .audio{background:#e8ffe8}.audio svg{fill:#52c41a}
@@ -38,6 +40,10 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .doc{background:#f0e8ff}.doc svg{fill:#9254de}
 .zip{background:#fff8e1}.zip svg{fill:#d4b106}
 .other{background:#f0f1f3}.other svg{fill:#999}
+
+.upload-bar{background:#fff;padding:10px 16px;border-top:1px solid #f0f1f3;font-size:13px;color:#666}
+.upload-item{display:flex;justify-content:space-between;padding:4px 0}
+.upload-item .ok{color:#52c41a}.upload-item .ng{color:#ff4d4f}.upload-item .busy{color:#fa8c16}
 
 .bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:12px 16px 24px;box-shadow:0 -2px 12px rgba(0,0,0,.06);display:flex;gap:10px}
 .btn{flex:1;padding:13px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
@@ -56,6 +62,10 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .switch.on{background:#4f8cff}
 .switch::after{content:'';position:absolute;width:24px;height:24px;background:#fff;border-radius:50%;top:2px;left:2px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .switch.on::after{left:22px}
+
+.num-stepper{display:flex;align-items:center;gap:8px}
+.num-btn{width:28px;height:28px;border-radius:6px;background:#f0f1f3;border:none;font-size:18px;cursor:pointer}
+.num-val{font-size:16px;font-weight:600;min-width:24px;text-align:center}
 
 .option-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px 16px}
 .option-card{background:#f5f6f8;border-radius:10px;padding:12px;text-align:center;font-size:14px;color:#666;cursor:pointer}
@@ -79,9 +89,9 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 .dot-on{background:#52c41a}.dot-off{background:#ccc}
 .status-name{font-size:14px;font-weight:600}
 .status-detail{font-size:12px;color:#999;margin-top:6px}
-.console-row{display:flex;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #f0f1f3}
+.console-row{display:flex;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #f0f1f3;align-items:center}
 .console-row:last-child{border-bottom:none}
-.console-row-label{font-size:14px}.console-row-value{font-size:13px;color:#4f8cff;font-weight:600}
+.console-row-label{font-size:14px}.console-row-value{font-size:13px;color:#4f8cff;font-weight:600;cursor:pointer}
 
 .tabbar{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;padding:8px 0 16px;box-shadow:0 -2px 12px rgba(0,0,0,.06);z-index:100}
 .tab{flex:1;text-align:center;cursor:pointer}
@@ -104,6 +114,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
     <div class="storage-bar"><div class="storage-bar-fill" id="storageBar" style="width:0%"></div></div>
   </div>
   <div class="file-list" id="fileList"><div class="loading">加载中...</div></div>
+  <div class="upload-bar" id="uploadBar" style="display:none"></div>
   <div class="bottom-bar">
     <button class="btn btn-primary" onclick="document.getElementById('uploadInput').click()">
       <svg viewBox="0 0 24 24" fill="#fff" width="18"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>上传
@@ -128,58 +139,62 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
     <div class="set-item">
       <div class="set-item-icon" style="background:#e8f0ff"><svg viewBox="0 0 24 24" fill="#4f8cff"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg></div>
       <span class="set-item-label">网格视图</span>
-      <div class="switch on" onclick="this.classList.toggle('on')"></div>
+      <div class="switch on" id="swGrid" onclick="saveSwitch('grid',this)"></div>
     </div>
     <div class="set-item">
       <div class="set-item-icon" style="background:#e8ffe8"><svg viewBox="0 0 24 24" fill="#52c41a"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg></div>
       <span class="set-item-label">显示缩略图</span>
-      <div class="switch on" onclick="this.classList.toggle('on')"></div>
+      <div class="switch on" id="swThumbs" onclick="saveSwitch('thumbs',this)"></div>
     </div>
     <div class="set-item">
       <div class="set-item-icon" style="background:#f0e8ff"><svg viewBox="0 0 24 24" fill="#9254de"><path d="M12 5V2L8 6l4 4V7c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C20.63 16.07 22 14.11 22 12c0-5.52-4.48-10-10-10z"/></svg></div>
       <span class="set-item-label">显示隐藏文件</span>
-      <div class="switch" onclick="this.classList.toggle('on')"></div>
+      <div class="switch" id="swHidden" onclick="saveSwitch('hidden',this)"></div>
     </div>
     <div class="set-item">
       <div class="set-item-icon" style="background:#fff3e0"><svg viewBox="0 0 24 24" fill="#fa8c16"><path d="M3 17v2h6v-2H3zM3 5v2h10V5H3z"/></svg></div>
       <span class="set-item-label">文件夹优先</span>
-      <div class="switch on" onclick="this.classList.toggle('on')"></div>
-    </div>
-  </div>
-
-  <div class="set-group-title">主题外观</div>
-  <div class="set-group">
-    <div class="set-item"><span class="set-item-label">主题色</span></div>
-    <div class="theme-colors">
-      <div class="theme-dot active" style="background:#4f8cff"></div>
-      <div class="theme-dot" style="background:#52c41a"></div>
-      <div class="theme-dot" style="background:#ff6b6b"></div>
-      <div class="theme-dot" style="background:#9254de"></div>
-      <div class="theme-dot" style="background:#fa8c16"></div>
-      <div class="theme-dot" style="background:#1a1a2e"></div>
-    </div>
-  </div>
-
-  <div class="set-group-title">下载设置</div>
-  <div class="set-group">
-    <div class="set-item"><span class="set-item-label">文件夹打包格式</span></div>
-    <div class="option-grid">
-      <div class="option-card active">ZIP</div>
-      <div class="option-card">TAR.GZ</div>
-      <div class="option-card">TAR.XZ</div>
-      <div class="option-card">不打包</div>
+      <div class="switch on" id="swFolderFirst" onclick="saveSwitch('folderFirst',this)"></div>
     </div>
   </div>
 
   <div class="set-group-title">上传设置</div>
   <div class="set-group">
-    <div class="set-item"><span class="set-item-label">上传后自动刷新</span><div class="switch on" onclick="this.classList.toggle('on')"></div></div>
-    <div class="set-item"><span class="set-item-label">覆盖同名文件</span><div class="switch" onclick="this.classList.toggle('on')"></div></div>
+    <div class="set-item">
+      <span class="set-item-label">并行上传数</span>
+      <div class="num-stepper">
+        <button class="num-btn" onclick="changeParallel(-1)">-</button>
+        <span class="num-val" id="parallelVal">2</span>
+        <button class="num-btn" onclick="changeParallel(1)">+</button>
+      </div>
+    </div>
+    <div class="set-item"><span class="set-item-label">上传后自动刷新</span><div class="switch on" id="swAutoRefresh" onclick="saveSwitch('autoRefresh',this)"></div></div>
+    <div class="set-item"><span class="set-item-label">覆盖同名文件</span><div class="switch" id="swOverwrite" onclick="saveSwitch('overwrite',this)"></div></div>
+  </div>
+
+  <div class="set-group-title">下载设置</div>
+  <div class="set-group">
+    <div class="set-item"><span class="set-item-label">文件夹打包格式</span></div>
+    <div class="option-grid" id="dlFormat">
+      <div class="option-card active" data-v="zip" onclick="saveDlFormat(this)">ZIP</div>
+      <div class="option-card" data-v="tgz" onclick="saveDlFormat(this)">TAR.GZ</div>
+      <div class="option-card" data-v="txz" onclick="saveDlFormat(this)">TAR.XZ</div>
+      <div class="option-card" data-v="plain" onclick="saveDlFormat(this)">不打包</div>
+    </div>
+  </div>
+
+  <div class="set-group-title">账号安全</div>
+  <div class="set-group">
+    <div class="set-item" onclick="setPassword()" style="cursor:pointer">
+      <span class="set-item-label">登录密码</span>
+      <span class="set-item-value" id="pwdStatus">未设置</span>
+      <span style="color:#ccc">›</span>
+    </div>
   </div>
 
   <div class="set-group-title">关于</div>
   <div class="set-group">
-    <div class="set-item"><span class="set-item-label">版本</span><span class="set-item-value">v1.0.0</span></div>
+    <div class="set-item"><span class="set-item-label">版本</span><span class="set-item-value">v1.1.0</span></div>
     <div class="set-item"><span class="set-item-label">后端</span><span class="set-item-value">copyparty</span></div>
   </div>
 </div>
@@ -193,11 +208,15 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
   </div>
   <div class="status-grid">
     <div class="status-card"><div><span class="status-dot dot-on"></span><span class="status-name">Web 服务</span></div><div class="status-detail">HTTP · 5301</div></div>
+    <div class="status-card"><div><span class="status-dot dot-on"></span><span class="status-name">WebDAV</span></div><div class="status-detail">已启用</div></div>
     <div class="status-card"><div><span class="status-dot dot-on"></span><span class="status-name">上传</span></div><div class="status-detail">已开启</div></div>
-    <div class="status-card"><div><span class="status-dot dot-on"></span><span class="status-name">下载</span></div><div class="status-detail">已开启</div></div>
     <div class="status-card"><div><span class="status-dot dot-off"></span><span class="status-name">外网</span></div><div class="status-detail">未配置</div></div>
   </div>
   <div class="set-group">
+    <div class="console-row">
+      <span class="console-row-label">WebDAV 地址</span>
+      <span class="console-row-value" onclick="copyText('http://局域网IP:5301/dav')">复制</span>
+    </div>
     <div class="console-row"><span class="console-row-label">存储目录</span><span class="console-row-value" id="storageDir">/sdcard/NAS</span></div>
     <div class="console-row"><span class="console-row-label">磁盘信息</span><span class="console-row-value" id="diskInfo">读取中</span></div>
   </div>
@@ -218,6 +237,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 <script>
 var BASE = 'http://127.0.0.1:5301';
 var cwd = '/';
+var settings = JSON.parse(localStorage.getItem('cp_settings') || '{}');
 
 function showPage(name, el) {
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
@@ -227,9 +247,44 @@ function showPage(name, el) {
   window.scrollTo(0,0);
 }
 
+function save() { localStorage.setItem('cp_settings', JSON.stringify(settings)); }
+
+function saveSwitch(key, el) {
+  el.classList.toggle('on');
+  settings[key] = el.classList.contains('on');
+  save();
+}
+
+function saveDlFormat(el) {
+  document.querySelectorAll('#dlFormat .option-card').forEach(function(c){c.classList.remove('active')});
+  el.classList.add('active');
+  settings.dlFormat = el.dataset.v;
+  save();
+}
+
+function changeParallel(d) {
+  var v = (settings.parallel || 2) + d;
+  if (v < 1) v = 1; if (v > 8) v = 8;
+  settings.parallel = v;
+  document.getElementById('parallelVal').textContent = v;
+  save();
+}
+
+function setPassword() {
+  var p = prompt('设置登录密码（留空取消）:');
+  if (p === null) return;
+  settings.password = p;
+  document.getElementById('pwdStatus').textContent = p ? '已设置' : '未设置';
+  save();
+  alert('密码已保存（下次生效）');
+}
+
+function copyText(t) {
+  navigator.clipboard.writeText(t).then(function(){ alert('已复制: ' + t); });
+}
+
 function fmtSize(s) {
-  s = parseFloat(s);
-  if (isNaN(s)) return s;
+  s = parseFloat(s); if (isNaN(s)) return s;
   if (s < 1024) return s + ' B';
   if (s < 1048576) return (s/1024).toFixed(1) + ' KB';
   if (s < 1073741824) return (s/1048576).toFixed(1) + ' MB';
@@ -237,8 +292,7 @@ function fmtSize(s) {
 }
 
 function fmtDate(ts) {
-  var s = String(ts);
-  if (s.length < 14) return '';
+  var s = String(ts); if (s.length < 14) return '';
   return s.substring(0,4)+'-'+s.substring(4,6)+'-'+s.substring(6,8)+' '+s.substring(8,10)+':'+s.substring(10,12);
 }
 
@@ -296,13 +350,35 @@ function renderList(text) {
     if (isDir) name = name.slice(0, -1);
     var cls = iconClass(name, isDir);
     var meta = isDir ? '文件夹 · ' + fmtDate(ts) : fmtSize(size) + ' · ' + fmtDate(ts);
-    var onclick = isDir ? "loadDir('" + cwd + name + "/')" : "window.open('" + BASE + cwd + name + "','_blank')";
-    html += '<div class="file-item" onclick="' + onclick + '">' +
-      '<div class="file-icon ' + cls + '">' + ICONS[cls] + '</div>' +
-      '<div class="file-info"><div class="file-name">' + name + '</div><div class="file-meta">' + meta + '</div></div>' +
-      '</div>';
+    var path = cwd + name + (isDir ? '/' : '');
+    html += '<div class="file-item">' +
+      '<div class="file-icon ' + cls + '" onclick="' + (isDir ? "loadDir('"+path+"')" : "downloadFile('"+name+"')") + '">' + ICONS[cls] + '</div>' +
+      '<div class="file-info" onclick="' + (isDir ? "loadDir('"+path+"')" : "downloadFile('"+name+"')") + '"><div class="file-name">' + name + '</div><div class="file-meta">' + meta + '</div></div>' +
+      '<div class="file-actions">' +
+        '<button class="file-btn" onclick="renameFile(\''+name+'\')" title="重命名"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>' +
+        '<button class="file-btn del" onclick="delFile(\''+name+'\')" title="删除"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>' +
+      '</div></div>';
   });
   document.getElementById('fileList').innerHTML = html || '<div class="loading">空目录</div>';
+}
+
+function downloadFile(name) {
+  window.open(BASE + cwd + name, '_blank');
+}
+
+function delFile(name) {
+  if (!confirm('删除 ' + name + '？')) return;
+  fetch(BASE + cwd + name, {method: 'DELETE'})
+    .then(function(){ loadDir(cwd); })
+    .catch(function(){ alert('删除失败'); });
+}
+
+function renameFile(name) {
+  var nn = prompt('重命名为:', name);
+  if (!nn || nn === name) return;
+  fetch(BASE + cwd + name, {method: 'MOVE', headers: {'Destination': cwd + nn}})
+    .then(function(){ loadDir(cwd); })
+    .catch(function(){ alert('重命名失败'); });
 }
 
 function mkdir() {
@@ -314,10 +390,46 @@ function mkdir() {
 document.getElementById('uploadInput').addEventListener('change', function(e){
   var files = e.target.files;
   if (!files.length) return;
-  var fd = new FormData();
-  for (var i = 0; i < files.length; i++) fd.append('file', files[i]);
-  fetch(BASE + cwd, {method: 'POST', body: fd}).then(function(){ loadDir(cwd); }).catch(function(){ alert('上传失败'); });
+  var bar = document.getElementById('uploadBar');
+  bar.style.display = 'block';
+  var done = 0;
+  for (var i = 0; i < files.length; i++) {
+    (function(f) {
+      var fd = new FormData();
+      fd.append('file', f);
+      bar.innerHTML = '<div class="upload-item"><span>' + f.name + '</span><span class="busy">上传中...</span></div>';
+      fetch(BASE + cwd, {method: 'POST', body: fd})
+        .then(function(){
+          done++;
+          bar.innerHTML = '<div class="upload-item"><span>' + f.name + '</span><span class="ok">完成</span></div>';
+          if (done === files.length) {
+            setTimeout(function(){ bar.style.display = 'none'; loadDir(cwd); }, 800);
+          }
+        })
+        .catch(function(){
+          done++;
+          bar.innerHTML = '<div class="upload-item"><span>' + f.name + '</span><span class="ng">失败</span></div>';
+        });
+    })(files[i]);
+  }
 });
+
+// 恢复设置
+(function() {
+  if (settings.grid !== undefined) document.getElementById('swGrid').classList.toggle('on', settings.grid);
+  if (settings.thumbs !== undefined) document.getElementById('swThumbs').classList.toggle('on', settings.thumbs);
+  if (settings.hidden !== undefined) document.getElementById('swHidden').classList.toggle('on', settings.hidden);
+  if (settings.folderFirst !== undefined) document.getElementById('swFolderFirst').classList.toggle('on', settings.folderFirst);
+  if (settings.autoRefresh !== undefined) document.getElementById('swAutoRefresh').classList.toggle('on', settings.autoRefresh);
+  if (settings.overwrite !== undefined) document.getElementById('swOverwrite').classList.toggle('on', settings.overwrite);
+  if (settings.parallel) document.getElementById('parallelVal').textContent = settings.parallel;
+  if (settings.password) document.getElementById('pwdStatus').textContent = '已设置';
+  if (settings.dlFormat) {
+    document.querySelectorAll('#dlFormat .option-card').forEach(function(c){
+      c.classList.toggle('active', c.dataset.v === settings.dlFormat);
+    });
+  }
+})();
 
 loadDir('/');
 </script>
