@@ -94,26 +94,10 @@ public class MainActivity extends AppCompatActivity {
 
         refreshUi();
 
-        // 打开App自动启动服务并直接进入网盘后台
-        autoStartAndOpen();
-    }
-
-    private void autoStartAndOpen() {
-        if (CopyPartyService.isRunning()) {
-            // 已在跑，直接进后台
-            handler.postDelayed(() ->
-                startActivity(new Intent(this, WebActivity.class)), 400);
-            return;
+        // 打开App自动启动服务（不自动跳网页，避免白屏卡住）
+        if (!CopyPartyService.isRunning() && AssetExtractor.isReady(this)) {
+            doStartService();
         }
-        // 未运行：先启动，等就绪后跳后台
-        doStartService();
-        handler.postDelayed(() -> {
-            if (CopyPartyService.isRunning()) {
-                startActivity(new Intent(this, WebActivity.class));
-            } else {
-                Toast.makeText(this, "服务启动中，点「启动服务」后再进后台", Toast.LENGTH_LONG).show();
-            }
-        }, 3000);
     }
 
     @Override
