@@ -1,38 +1,76 @@
 package com.copyparty.app;
 
-import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
+import android.os.Looper;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-public class MainActivity extends AppCompatActivity {
-    private static final int REQ_NOTIF = 1001;
+public class MainActivity extends Activity {
+    private static final int REQ_PERMS = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // 请求通知权限（Android 13+）
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.POST_NOTIFICATIONS}, REQ_NOTIF);
+        requestAllPermissions();
+    }
+
+    private void requestAllPermissions() {
+        String[] perms;
+        if (Build.VERSION.SDK_INT >= 33) {
+            perms = new String[]{
+                "android.permission.READ_EXTERNAL_STORAGE",
+                "android.permission.WRITE_EXTERNAL_STORAGE",
+                "android.permission.READ_MEDIA_IMAGES",
+                "android.permission.READ_MEDIA_VIDEO",
+                "android.permission.READ_MEDIA_AUDIO",
+                "android.permission.POST_NOTIFICATIONS",
+                "android.permission.ACCESS_FINE_LOCATION",
+                "android.permission.ACCESS_COARSE_LOCATION",
+                "android.permission.CAMERA",
+                "android.permission.RECORD_AUDIO"
+            };
+        } else {
+            perms = new String[]{
+                "android.permission.READ_EXTERNAL_STORAGE",
+                "android.permission.WRITE_EXTERNAL_STORAGE",
+                "android.permission.ACCESS_FINE_LOCATION",
+                "android.permission.ACCESS_COARSE_LOCATION",
+                "android.permission.CAMERA",
+                "android.permission.RECORD_AUDIO"
+            };
+        }
+        java.util.List<String> need = new java.util.ArrayList<>();
+        for (String p : perms) {
+            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED) {
+                need.add(p);
             }
         }
-        // 自动启动服务
-        startService(new Intent(this, CopyPartyService.class)
-                .setAction("com.copyparty.app.action.START"));
-        // 延迟跳转到 WebActivity（等服务起来）
-        new Handler().postDelayed(() -> {
-            startActivity(new Intent(this, WebActivity.class));
-            finish();
+        if (!need.isEmpty()) {
+            ActivityCompat.requestPermissions(this, need.toArray(new String[0]), REQ_PERMS);
+        } else {
+            goNext();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int req, String[] p, int[] res) {
+        super.onRequestPermissionsResult(req, p, res);
+        goNext();
+    }
+
+    private void goNext() {
+        CopyPartyService.start(this);
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                startActivity(new Intent(MainActivity.this, WebActivity.class));
+                finish();
+            }
         }, 1500);
     }
 }
