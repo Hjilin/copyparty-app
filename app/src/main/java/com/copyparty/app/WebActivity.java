@@ -93,8 +93,7 @@ public class WebActivity extends Activity {
     }
 
     private String copyUriToFile(Uri uri) {
-        Log.e("CPHTTP", "request " + method + " " + url);
-            try {
+        try {
             InputStream is = getContentResolver().openInputStream(uri);
             File out = new File(getFilesDir(), "upload_" + System.currentTimeMillis() + ".tmp");
             FileOutputStream fos = new FileOutputStream(out);
@@ -207,7 +206,6 @@ public class WebActivity extends Activity {
 
         @JavascriptInterface
         public String uploadFile(String url, String filePath, String fileName) {
-            Log.e("CPHTTP", "request " + method + " " + url);
             try {
                 String boundary = "----CopyParty" + System.currentTimeMillis();
                 URL u = new URL(url);
