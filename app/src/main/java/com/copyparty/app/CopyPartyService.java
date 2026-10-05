@@ -94,7 +94,7 @@ public class CopyPartyService extends Service {
             cmd.add("/system/bin/linker64");
             cmd.add(py.getAbsolutePath());
             cmd.add(pyz.getAbsolutePath());
-            cmd.add("-p"); cmd.add(String.valueOf(currentPort));
+            cmd.add("-p"); cmd.add("127.0.0.1:" + currentPort);
             cmd.add("-q");
             ProcessBuilder pb = new ProcessBuilder(cmd);
             pb.directory(dir);
