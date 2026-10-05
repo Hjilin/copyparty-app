@@ -167,7 +167,7 @@ public class WebActivity extends Activity {
                 conn.setRequestMethod(method);
                 conn.setConnectTimeout(5000);
                 conn.setReadTimeout(15000);
-                conn.setRequestProperty("User-Agent", "CopyPartyApp");
+// UA kept as curl/7.0 above
                 conn.setRequestProperty("Accept", "text/plain,*/*");
                 if (extraHeader != null) {
                     conn.setRequestProperty(extraHeader[0], extraHeader[1]);
