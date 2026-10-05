@@ -61,11 +61,12 @@ public class WebActivity extends Activity {
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest req) { return false; }
         });
         web.setWebChromeClient(new WebChromeClient() {
-            public void onShowFileChooser(WebView view, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+            public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
                 mFilePathCallback = filePathCallback;
                 Intent i = fileChooserParams.createIntent();
                 try { startActivityForResult(Intent.createChooser(i, "选择文件"), 1); }
-                catch (Exception e) { mFilePathCallback = null; }
+                catch (Exception e) { mFilePathCallback = null; return false; }
+            return true;
             }
         });
         web.loadUrl("file:///android_asset/web/index.html");
