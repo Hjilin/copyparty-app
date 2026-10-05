@@ -25,7 +25,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import androidx.core.app.NotificationCompat;
 import org.json.JSONArray;
-import org.json.JSONObject;\nimport android.util.Log;
+import org.json.JSONObject;
+import android.util.Log;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -64,7 +65,8 @@ public class WebActivity extends Activity {
             public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
                 mFilePathCallback = filePathCallback;
                 Intent i = fileChooserParams.createIntent();
-                Log.e("CPHTTP", "request " + method + " " + url);\n            try { startActivityForResult(Intent.createChooser(i, "选择文件"), 1); }
+                Log.e("CPHTTP", "request " + method + " " + url);
+            try { startActivityForResult(Intent.createChooser(i, "选择文件"), 1); }
                 catch (Exception e) { mFilePathCallback = null; return false; }
             return true;
             }
@@ -92,7 +94,8 @@ public class WebActivity extends Activity {
     }
 
     private String copyUriToFile(Uri uri) {
-        Log.e("CPHTTP", "request " + method + " " + url);\n            try {
+        Log.e("CPHTTP", "request " + method + " " + url);
+            try {
             InputStream is = getContentResolver().openInputStream(uri);
             File out = new File(getFilesDir(), "upload_" + System.currentTimeMillis() + ".tmp");
             FileOutputStream fos = new FileOutputStream(out);
@@ -157,7 +160,8 @@ public class WebActivity extends Activity {
         }
 
         private String doRequest(String method, String url, String body, String[] extraHeader) {
-            Log.e("CPHTTP", "request " + method + " " + url);\n            try {
+            Log.e("CPHTTP", "request " + method + " " + url);
+            try {
                 URL u = new URL(url);
                 HttpURLConnection conn = (HttpURLConnection) u.openConnection();
                 conn.setRequestMethod(method);
@@ -192,7 +196,8 @@ public class WebActivity extends Activity {
                 r.put("body", resp);
                 return r.toString();
             } catch (Exception e) {
-                Log.e("CPHTTP", "request " + method + " " + url);\n            try {
+                Log.e("CPHTTP", "request " + method + " " + url);
+            try {
                     JSONObject r = new JSONObject();
                     r.put("code", 0);
                     r.put("body", e.getMessage());
@@ -203,7 +208,8 @@ public class WebActivity extends Activity {
 
         @JavascriptInterface
         public String uploadFile(String url, String filePath, String fileName) {
-            Log.e("CPHTTP", "request " + method + " " + url);\n            try {
+            Log.e("CPHTTP", "request " + method + " " + url);
+            try {
                 String boundary = "----CopyParty" + System.currentTimeMillis();
                 URL u = new URL(url);
                 HttpURLConnection conn = (HttpURLConnection) u.openConnection();
@@ -231,7 +237,8 @@ public class WebActivity extends Activity {
                 r.put("body", "upload done");
                 return r.toString();
             } catch (Exception e) {
-                Log.e("CPHTTP", "request " + method + " " + url);\n            try {
+                Log.e("CPHTTP", "request " + method + " " + url);
+            try {
                     JSONObject r = new JSONObject();
                     r.put("code", 0);
                     r.put("body", e.getMessage());
