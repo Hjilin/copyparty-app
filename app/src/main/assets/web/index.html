@@ -401,9 +401,8 @@ function downloadFile(name) {
 
 function delFile(name) {
   if (!confirm('删除 ' + name + '？')) return;
-  AndroidHttp.request('DELETE', BASE + cwd + name);
+  try { AndroidHttp.request('DELETE', BASE + cwd + name); } catch(e){ alert('删除失败: '+e.message); }
   loadDir(cwd);
-    .catch(function(){ alert('删除失败'); });
 }
 
 function renameFile(name) {
