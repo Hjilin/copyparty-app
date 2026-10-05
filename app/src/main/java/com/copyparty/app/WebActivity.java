@@ -13,6 +13,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import androidx.core.app.NotificationCompat;
+import org.json.JSONArray;
 
 public class WebActivity extends Activity {
     private WebView web;
@@ -33,6 +34,7 @@ public class WebActivity extends Activity {
         web.getSettings().setAllowUniversalAccessFromFileURLs(true);
         web.getSettings().setMixedContentMode(android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         web.addJavascriptInterface(new NotifyJS(this), "AndroidNotify");
+        web.addJavascriptInterface(new LogJS(), "AndroidLog");
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest req) { return false; }
@@ -61,6 +63,13 @@ public class WebActivity extends Activity {
                 .setSmallIcon(android.R.drawable.stat_sys_upload_done)
                 .setAutoCancel(true);
             nm.notify((int) System.currentTimeMillis(), b.build());
+        }
+    }
+
+    public static class LogJS {
+        @JavascriptInterface
+        public String get() {
+            return new JSONArray(CopyPartyService.getOpLog()).toString();
         }
     }
 }
