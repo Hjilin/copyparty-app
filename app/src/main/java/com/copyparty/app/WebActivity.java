@@ -163,6 +163,7 @@ public class WebActivity extends Activity {
             try {
                 URL u = new URL(url);
                 HttpURLConnection conn = (HttpURLConnection) u.openConnection();
+                conn.setRequestProperty("User-Agent", "curl/7.0");
                 conn.setRequestMethod(method);
                 conn.setConnectTimeout(5000);
                 conn.setReadTimeout(15000);
@@ -180,6 +181,7 @@ public class WebActivity extends Activity {
                     os.close();
                 }
                 int code = conn.getResponseCode();
+            Log.e("CPHTTP", "RESP code=" + code + " len=" + (conn.getContentLength()>=0?conn.getContentLength():-1));
                 InputStream is = (code >= 200 && code < 400) ? conn.getInputStream() : conn.getErrorStream();
                 String resp = "";
                 if (is != null) {
@@ -210,6 +212,7 @@ public class WebActivity extends Activity {
                 String boundary = "----CopyParty" + System.currentTimeMillis();
                 URL u = new URL(url);
                 HttpURLConnection conn = (HttpURLConnection) u.openConnection();
+                conn.setRequestProperty("User-Agent", "curl/7.0");
                 conn.setRequestMethod("POST");
                 conn.setConnectTimeout(5000);
                 conn.setReadTimeout(60000);
@@ -229,6 +232,7 @@ public class WebActivity extends Activity {
                 os.flush();
                 os.close();
                 int code = conn.getResponseCode();
+            Log.e("CPHTTP", "RESP code=" + code + " len=" + (conn.getContentLength()>=0?conn.getContentLength():-1));
                 JSONObject r = new JSONObject();
                 r.put("code", code);
                 r.put("body", "upload done");
