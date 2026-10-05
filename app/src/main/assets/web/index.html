@@ -410,7 +410,6 @@ function renameFile(name) {
   if (!nn || nn === name) return;
   AndroidHttp.requestWithHeader('MOVE', BASE + cwd + name, 'Destination', cwd + nn);
   loadDir(cwd);
-    .catch(function(){ alert('重命名失败'); });
 }
 
 function startMove(name) {
