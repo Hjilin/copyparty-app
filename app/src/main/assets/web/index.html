@@ -115,6 +115,13 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
   </div>
   <div class="file-list" id="fileList"><div class="loading">加载中...</div></div>
   <div class="upload-bar" id="uploadBar" style="display:none"></div>
+  <div id="moveBar" style="display:none;position:fixed;bottom:80px;left:0;right:0;background:#4f8cff;color:#fff;padding:12px 16px;z-index:99;display:none;align-items:center;justify-content:space-between">
+    <span style="font-size:14px">移动到当前目录？</span>
+    <div style="display:flex;gap:8px">
+      <button onclick="cancelMove()" style="padding:8px 16px;border:none;border-radius:8px;background:rgba(255,255,255,.2);color:#fff;cursor:pointer">取消</button>
+      <button onclick="doMove()" style="padding:8px 16px;border:none;border-radius:8px;background:#fff;color:#4f8cff;font-weight:600;cursor:pointer">移动到此处</button>
+    </div>
+  </div>
   <div class="bottom-bar">
     <button class="btn btn-primary" onclick="document.getElementById('uploadInput').click()">
       <svg viewBox="0 0 24 24" fill="#fff" width="18"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>上传
@@ -238,6 +245,7 @@ body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;backgr
 var BASE = 'http://127.0.0.1:5301';
 var cwd = '/';
 var settings = JSON.parse(localStorage.getItem('cp_settings') || '{}');
+var pendingMove = null; // 待移动的文件路径
 
 function showPage(name, el) {
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
@@ -355,6 +363,7 @@ function renderList(text) {
       '<div class="file-icon ' + cls + '" onclick="' + (isDir ? "loadDir('"+path+"')" : "downloadFile('"+name+"')") + '">' + ICONS[cls] + '</div>' +
       '<div class="file-info" onclick="' + (isDir ? "loadDir('"+path+"')" : "downloadFile('"+name+"')") + '"><div class="file-name">' + name + '</div><div class="file-meta">' + meta + '</div></div>' +
       '<div class="file-actions">' +
+        '<button class="file-btn" onclick="startMove(\''+name+'\')" title="移动"><svg viewBox="0 0 24 24"><path d="M10 9h4V6h3l-5-5-5 5h3v3zm-1 1H6V7l-5 5 5 5v-3h3v-4zm14 4l-5-5v3h-3v4h3v3l5-5zm-9 4h-4v3l5 5 5-5v-3h-4v-4z"/></svg></button>' +
         '<button class="file-btn" onclick="renameFile(\''+name+'\')" title="重命名"><svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>' +
         '<button class="file-btn del" onclick="delFile(\''+name+'\')" title="删除"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>' +
       '</div></div>';
@@ -381,6 +390,37 @@ function renameFile(name) {
     .catch(function(){ alert('重命名失败'); });
 }
 
+function startMove(name) {
+  pendingMove = cwd + name;
+  alert('已选择「' + name + '」，请导航到目标目录后点底部「移动到此处」');
+  showMoveBar();
+}
+
+function showMoveBar() {
+  var bar = document.getElementById('moveBar');
+  if (pendingMove) { bar.style.display = 'flex'; } else { bar.style.display = 'none'; }
+}
+
+function doMove() {
+  if (!pendingMove) return;
+  var src = pendingMove;
+  var dst = cwd + src.split('/').pop();
+  if (src === dst) { alert('已在当前目录'); pendingMove = null; showMoveBar(); return; }
+  fetch(BASE + src, {method: 'MOVE', headers: {'Destination': dst}})
+    .then(function(){
+      pendingMove = null;
+      showMoveBar();
+      loadDir(cwd);
+      alert('移动成功');
+    })
+    .catch(function(){ alert('移动失败'); });
+}
+
+function cancelMove() {
+  pendingMove = null;
+  showMoveBar();
+}
+
 function mkdir() {
   var name = prompt('文件夹名称:');
   if (!name) return;
@@ -404,6 +444,7 @@ document.getElementById('uploadInput').addEventListener('change', function(e){
           bar.innerHTML = '<div class="upload-item"><span>' + f.name + '</span><span class="ok">完成</span></div>';
           if (done === files.length) {
             setTimeout(function(){ bar.style.display = 'none'; loadDir(cwd); }, 800);
+            if (window.AndroidNotify) AndroidNotify.show('上传完成', files.length + ' 个文件已上传');
           }
         })
         .catch(function(){
