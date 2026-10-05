@@ -97,8 +97,6 @@ public class CopyPartyService extends Service {
             cmdList.add("-p");
             cmdList.add(String.valueOf(port));
             cmdList.add("-q");
-            cmdList.add("--no-cookies");
-
             // 环境变量：LD_LIBRARY_PATH 指向 lib，PYTHONHOME 指向运行目录
             List<String> envList = new ArrayList<>();
             envList.add("LD_LIBRARY_PATH=" + new File(dir, "lib").getAbsolutePath());
