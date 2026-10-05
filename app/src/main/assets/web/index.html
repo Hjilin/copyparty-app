@@ -341,20 +341,27 @@ var ICONS = {
   other:'<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6z"/></svg>'
 };
 
+var _retryCount = 0;
 function loadDir(path) {
   cwd = path;
-  var dbg = 'typeof AndroidHttp=' + (typeof AndroidHttp) + ' BASE=' + BASE;
-  document.getElementById('fileList').innerHTML = '<div class="loading" style="color:red;font-size:12px">' + dbg + '</div>';
+  document.getElementById('fileList').innerHTML = '<div class="loading">加载中...</div>';
   try {
     var raw = AndroidHttp.request('GET', BASE + path);
     var r = JSON.parse(raw);
     if (r.code >= 200 && r.code < 300) {
+      _retryCount = 0;
       renderList(r.body);
     } else {
       document.getElementById('fileList').innerHTML = '<div class="loading">加载失败 code=' + r.code + '<br>msg=' + String(r.body).substring(0,300) + '</div>';
     }
   } catch(e) {
-    document.getElementById('fileList').innerHTML = '<div class="loading">JS错误: ' + e.message + '<br>raw=' + String(raw).substring(0,200) + '</div>';
+    _retryCount++;
+    if (_retryCount < 10) {
+      document.getElementById('fileList').innerHTML = '<div class="loading">等待服务启动... (' + _retryCount + '/10)</div>';
+      setTimeout(function(){ loadDir(cwd); }, 2000);
+    } else {
+      document.getElementById('fileList').innerHTML = '<div class="loading">连接失败<br>' + e.message + '</div>';
+    }
   }
 }
 
