@@ -344,11 +344,16 @@ var ICONS = {
 function loadDir(path) {
   cwd = path;
   document.getElementById('fileList').innerHTML = '<div class="loading">加载中...</div>';
-  var r = JSON.parse(AndroidHttp.request('GET', BASE + path));
-  if (r.code >= 200 && r.code < 300) {
-    renderList(r.body);
-  } else {
-    document.getElementById('fileList').innerHTML = '<div class="loading">加载失败 (code=' + r.code + ')</div>';
+  try {
+    var raw = AndroidHttp.request('GET', BASE + path);
+    var r = JSON.parse(raw);
+    if (r.code >= 200 && r.code < 300) {
+      renderList(r.body);
+    } else {
+      document.getElementById('fileList').innerHTML = '<div class="loading">加载失败 code=' + r.code + '<br>msg=' + String(r.body).substring(0,300) + '</div>';
+    }
+  } catch(e) {
+    document.getElementById('fileList').innerHTML = '<div class="loading">JS错误: ' + e.message + '<br>raw=' + String(raw).substring(0,200) + '</div>';
   }
 }
 
