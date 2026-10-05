@@ -65,7 +65,6 @@ public class WebActivity extends Activity {
             public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
                 mFilePathCallback = filePathCallback;
                 Intent i = fileChooserParams.createIntent();
-                Log.e("CPHTTP", "request " + method + " " + url);
             try { startActivityForResult(Intent.createChooser(i, "选择文件"), 1); }
                 catch (Exception e) { mFilePathCallback = null; return false; }
             return true;
@@ -160,6 +159,7 @@ public class WebActivity extends Activity {
         }
 
         private String doRequest(String method, String url, String body, String[] extraHeader) {
+            Log.e("CPHTTP", "REQUEST " + method + " " + url);
             Log.e("CPHTTP", "request " + method + " " + url);
             try {
                 URL u = new URL(url);
@@ -196,7 +196,6 @@ public class WebActivity extends Activity {
                 r.put("body", resp);
                 return r.toString();
             } catch (Exception e) {
-                Log.e("CPHTTP", "request " + method + " " + url);
             try {
                     JSONObject r = new JSONObject();
                     r.put("code", 0);
@@ -237,7 +236,6 @@ public class WebActivity extends Activity {
                 r.put("body", "upload done");
                 return r.toString();
             } catch (Exception e) {
-                Log.e("CPHTTP", "request " + method + " " + url);
             try {
                     JSONObject r = new JSONObject();
                     r.put("code", 0);
