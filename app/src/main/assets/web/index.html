@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>我的网盘</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f6f8;color:#1a1a1a;padding-bottom:80px}
+.page{display:none}.page.active{display:block}
+
+.header{background:#fff;padding:16px 16px 12px;position:sticky;top:0;z-index:10;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.header-title{font-size:20px;font-weight:700}
+.icon-btn{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#f0f1f3;border:none;cursor:pointer}
+.icon-btn svg{width:20px;height:20px;fill:#555}
+
+.breadcrumb{padding:12px 16px 4px;font-size:13px;color:#888;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.breadcrumb .cur{color:#333;font-weight:600}.breadcrumb .sep{color:#ccc}
+.breadcrumb span{cursor:pointer}
+
+.storage{margin:8px 16px;background:#fff;border-radius:14px;padding:14px}
+.storage-info{display:flex;justify-content:space-between;font-size:13px;color:#666;margin-bottom:8px}
+.storage-bar{height:6px;background:#e8e9eb;border-radius:3px;overflow:hidden}
+.storage-bar-fill{height:100%;width:46%;background:linear-gradient(90deg,#4f8cff,#7b61ff);border-radius:3px}
+
+.file-list{padding:8px 12px}
+.file-item{background:#fff;border-radius:14px;margin-bottom:8px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 2px rgba(0,0,0,.03);cursor:pointer}
+.file-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.file-icon svg{width:24px;height:24px}
+.file-info{flex:1;min-width:0}
+.file-name{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-meta{font-size:12px;color:#999;margin-top:3px}
+.file-del{color:#ccc;padding:8px}
+.file-del svg{width:18px;height:18px}
+.folder{background:#e8f0ff}.folder svg{fill:#4f8cff}
+.video{background:#ffe8e8}.video svg{fill:#ff6b6b}
+.audio{background:#e8ffe8}.audio svg{fill:#52c41a}
+.image{background:#fff3e0}.image svg{fill:#fa8c16}
+.doc{background:#f0e8ff}.doc svg{fill:#9254de}
+.zip{background:#fff8e1}.zip svg{fill:#d4b106}
+.other{background:#f0f1f3}.other svg{fill:#999}
+
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;padding:12px 16px 24px;box-shadow:0 -2px 12px rgba(0,0,0,.06);display:flex;gap:10px}
+.btn{flex:1;padding:13px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-primary{background:linear-gradient(135deg,#4f8cff,#7b61ff);color:#fff}
+.btn-outline{background:#f0f1f3;color:#333}
+
+.avatar-section{background:linear-gradient(135deg,#4f8cff,#7b61ff);padding:28px 20px 36px;text-align:center}
+.avatar{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.25);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;font-weight:700}
+.avatar-name{color:#fff;font-size:18px;font-weight:600}.avatar-desc{color:rgba(255,255,255,.7);font-size:12px;margin-top:4px}
+
+.set-group{margin:12px 16px;background:#fff;border-radius:14px;overflow:hidden}
+.set-group-title{font-size:13px;color:#999;padding:16px 16px 8px}
+.set-item{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid #f0f1f3}
+.set-item:last-child{border-bottom:none}
+.set-item-label{flex:1;font-size:15px}
+.set-item-value{font-size:13px;color:#999;margin-right:8px}
+
+.console-header{background:linear-gradient(135deg,#1a1a2e,#16213e);padding:24px 20px;color:#fff}
+.console-status{font-size:15px;opacity:.9}
+.console-port{font-size:28px;font-weight:700;margin-top:4px}
+.console-ip{font-size:13px;opacity:.7;margin-top:4px}
+.status-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+.status-card{background:#fff;border-radius:14px;padding:16px}
+.status-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px}
+.dot-on{background:#52c41a}.dot-off{background:#ccc}
+.status-name{font-size:14px;font-weight:600}
+.status-detail{font-size:12px;color:#999;margin-top:6px}
+.console-section{margin:12px 16px;background:#fff;border-radius:14px;overflow:hidden}
+.console-row{display:flex;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #f0f1f3}
+.console-row:last-child{border-bottom:none}
+.console-row-label{font-size:14px}.console-row-value{font-size:13px;color:#4f8cff;font-weight:600}
+
+.tabbar{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;padding:8px 0 16px;box-shadow:0 -2px 12px rgba(0,0,0,.06);z-index:100}
+.tab{flex:1;text-align:center;cursor:pointer}
+.tab svg{width:22px;height:22px;fill:#999;margin:0 auto 2px}
+.tab.active svg{fill:#4f8cff}
+.tab span{font-size:11px;color:#999}
+.tab.active span{color:#4f8cff;font-weight:600}
+
+.loading{text-align:center;padding:40px;color:#999;font-size:14px}
+#uploadInput{display:none}
+</style>
+</head>
+<body>
+
+<!-- 文件页 -->
+<div class="page active" id="page-files">
+  <div class="header">
+    <div class="header-top">
+      <div class="header-title">我的网盘</div>
+    </div>
+  </div>
+  <div class="breadcrumb" id="crumb"></div>
+  <div class="storage">
+    <div class="storage-info"><span id="storageText">加载中...</span></div>
+    <div class="storage-bar"><div class="storage-bar-fill" id="storageBar" style="width:0%"></div></div>
+  </div>
+  <div class="file-list" id="fileList"><div class="loading">加载中...</div></div>
+  <div class="bottom-bar">
+    <button class="btn btn-primary" onclick="document.getElementById('uploadInput').click()">
+      <svg viewBox="0 0 24 24" fill="#fff" width="18"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/></svg>上传
+    </button>
+    <button class="btn btn-outline" onclick="mkdir()">
+      <svg viewBox="0 0 24 24" fill="#333" width="18"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>新建文件夹
+    </button>
+  </div>
+  <input type="file" id="uploadInput" multiple>
+</div>
+
+<!-- 我的 -->
+<div class="page" id="page-settings">
+  <div class="avatar-section">
+    <div class="avatar">U</div>
+    <div class="avatar-name">本地用户</div>
+    <div class="avatar-desc">管理员</div>
+  </div>
+  <div class="set-group-title">账号</div>
+  <div class="set-group">
+    <div class="set-item"><span class="set-item-label">密码</span><span class="set-item-value">已设置</span></div>
+    <div class="set-item"><span class="set-item-label">写入权限</span><span class="set-item-value">允许上传/删除</span></div>
+  </div>
+  <div class="set-group-title">关于</div>
+  <div class="set-group">
+    <div class="set-item"><span class="set-item-label">版本</span><span class="set-item-value">v1.0.0</span></div>
+    <div class="set-item"><span class="set-item-label">后端</span><span class="set-item-value">copyparty</span></div>
+  </div>
+</div>
+
+<!-- 控制台 -->
+<div class="page" id="page-console">
+  <div class="console-header">
+    <div class="console-status">● 服务运行中</div>
+    <div class="console-port" id="portNum">5301</div>
+    <div class="console-ip" id="ipText">127.0.0.1:5301</div>
+  </div>
+  <div class="status-grid">
+    <div class="status-card"><div><span class="status-dot dot-on"></span><span class="status-name">Web 服务</span></div><div class="status-detail">HTTP 运行中</div></div>
+    <div class="status-card"><div><span class="status-dot dot-on"></span><span class="status-name">上传</span></div><div class="status-detail">已开启</div></div>
+    <div class="status-card"><div><span class="status-dot dot-on"></span><span class="status-name">下载</span></div><div class="status-detail">已开启</div></div>
+    <div class="status-card"><div><span class="status-dot dot-off"></span><span class="status-name">外网</span></div><div class="status-detail">未配置</div></div>
+  </div>
+  <div class="console-section">
+    <div class="console-row"><span class="console-row-label">存储目录</span><span class="console-row-value" id="storageDir">/sdcard/NAS</span></div>
+    <div class="console-row"><span class="console-row-label">磁盘信息</span><span class="console-row-value" id="diskInfo">读取中</span></div>
+  </div>
+</div>
+
+<div class="tabbar">
+  <div class="tab active" onclick="showPage('files',this)">
+    <svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg><span>文件</span>
+  </div>
+  <div class="tab" onclick="showPage('settings',this)">
+    <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span>我的</span>
+  </div>
+  <div class="tab" onclick="showPage('console',this)">
+    <svg viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg><span>控制台</span>
+  </div>
+</div>
+
+<script>
+var BASE = 'http://127.0.0.1:5301';
+var cwd = '/';
+
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
+  document.getElementById('page-'+name).classList.add('active');
+  el.classList.add('active');
+}
+
+function fmtSize(s) {
+  s = parseFloat(s);
+  if (s < 1024) return s + ' B';
+  if (s < 1048576) return (s/1024).toFixed(1) + ' KB';
+  if (s < 1073741824) return (s/1048576).toFixed(1) + ' MB';
+  return (s/1073741824).toFixed(1) + ' GB';
+}
+
+function fmtDate(ts) {
+  // YYYYMMDDhhmmss
+  var s = String(ts);
+  if (s.length < 14) return '';
+  return s.substring(0,4)+'-'+s.substring(4,6)+'-'+s.substring(6,8)+' '+s.substring(8,10)+':'+s.substring(10,12);
+}
+
+function iconClass(name, isDir) {
+  if (isDir) return 'folder';
+  var ext = name.split('.').pop().toLowerCase();
+  if (['mp4','mkv','avi','mov','webm'].indexOf(ext) >= 0) return 'video';
+  if (['mp3','flac','wav','aac','ogg'].indexOf(ext) >= 0) return 'audio';
+  if (['jpg','jpeg','png','gif','webp','bmp'].indexOf(ext) >= 0) return 'image';
+  if (['pdf','doc','docx','txt','md','xls','xlsx','ppt','pptx'].indexOf(ext) >= 0) return 'doc';
+  if (['zip','rar','7z','tar','gz'].indexOf(ext) >= 0) return 'zip';
+  return 'other';
+}
+
+var ICONS = {
+  folder: '<svg viewBox="0 0 24 24"><path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg>',
+  video: '<svg viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>',
+  audio: '<svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-2z"/></svg>',
+  image: '<svg viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>',
+  doc: '<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>',
+  zip: '<svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-9 7H9V7h2v2zm0 4H9v-2h2v2zm4-4h-2V7h2v2zm0 4h-2v-2h2v2z"/></svg>',
+  other: '<svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6z"/></svg>',
+  dl: '<svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>'
+};
+
+function loadDir(path) {
+  cwd = path;
+  document.getElementById('fileList').innerHTML = '<div class="loading">加载中...</div>';
+  fetch(BASE + path)
+    .then(function(r){ return r.text(); })
+    .then(function(text){
+      renderList(text);
+    })
+    .catch(function(e){
+      document.getElementById('fileList').innerHTML = '<div class="loading">加载失败: ' + e + '</div>';
+    });
+}
+
+function renderList(text) {
+  var lines = text.split('\n');
+  var html = '';
+  var crumbs = cwd.split('/').filter(Boolean);
+  var crumbHtml = '<span onclick="loadDir(\'/\')">根目录</span>';
+  var p = '';
+  crumbs.forEach(function(c){
+    p += '/' + c;
+    crumbHtml += '<span class="sep">/</span><span onclick="loadDir(\'' + p + '/\')">' + c + '</span>';
+  });
+  crumbHtml += '<span class="sep">/</span><span class="cur">当前</span>';
+  document.getElementById('crumb').innerHTML = crumbHtml;
+
+  // parent dir
+  if (cwd !== '/') {
+    var parent = cwd.replace(/\/[^\/]+\/$/, '/');
+    if (parent === cwd) parent = '/';
+    html += '<div class="file-item" onclick="loadDir(\'' + parent + '\')">' +
+      '<div class="file-icon folder">' + ICONS.folder + '</div>' +
+      '<div class="file-info"><div class="file-name">..</div><div class="file-meta">上级目录</div></div></div>';
+  }
+
+  lines.forEach(function(line){
+    if (!line || line.charAt(0) === '#') return;
+    // format: YYYYMMDDhhmmss size name
+    var m = line.match(/^(\d{14})\s+(\S+)\s+(.+)$/);
+    if (!m) return;
+    var ts = m[1], size = m[2], name = m[3];
+    var isDir = name.charAt(name.length-1) === '/';
+    if (isDir) name = name.slice(0, -1);
+    var cls = iconClass(name, isDir);
+    var meta = isDir ? '文件夹 · ' + fmtDate(ts) : fmtSize(size) + ' · ' + fmtDate(ts);
+    var onclick = isDir ? "loadDir('" + cwd + name + "/')" : "window.open('" + BASE + cwd + name + "','_blank')";
+    html += '<div class="file-item" onclick="' + onclick + '">' +
+      '<div class="file-icon ' + cls + '">' + ICONS[cls] + '</div>' +
+      '<div class="file-info"><div class="file-name">' + name + '</div><div class="file-meta">' + meta + '</div></div>' +
+      (isDir ? '' : '<div class="file-del" onclick="event.stopPropagation();delFile(\'' + name + '\')"><svg viewBox="0 0 24 24" fill="#ccc"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></div>') +
+      '</div>';
+  });
+
+  document.getElementById('fileList').innerHTML = html || '<div class="loading">空目录</div>';
+}
+
+function delFile(name) {
+  if (!confirm('删除 ' + name + '？')) return;
+  fetch(BASE + cwd + name, {method: 'DELETE'})
+    .then(function(r){ loadDir(cwd); })
+    .catch(function(){ alert('删除失败'); });
+}
+
+function mkdir() {
+  var name = prompt('文件夹名称:');
+  if (!name) return;
+  fetch(BASE + cwd + name + '/', {method: 'MKCOL'})
+    .then(function(r){ loadDir(cwd); })
+    .catch(function(){ alert('创建失败'); });
+}
+
+document.getElementById('uploadInput').addEventListener('change', function(e){
+  var files = e.target.files;
+  if (!files.length) return;
+  var fd = new FormData();
+  for (var i = 0; i < files.length; i++) fd.append('file', files[i]);
+  fetch(BASE + cwd, {method: 'POST', body: fd})
+    .then(function(r){ loadDir(cwd); })
+    .catch(function(){ alert('上传失败'); });
+});
+
+// 加载
+loadDir('/');
+</script>
+</body>
+</html>
