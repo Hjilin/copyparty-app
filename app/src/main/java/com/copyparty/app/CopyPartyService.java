@@ -115,6 +115,7 @@ public class CopyPartyService extends Service {
             pb.redirectErrorStream(true);
 
             process = pb.start();
+            appendLog("!!! process started, pid=" + process.hashCode());
             running = true;
 
             // 日志读取线程
@@ -131,8 +132,10 @@ public class CopyPartyService extends Service {
                     }
                 } catch (Exception ignored) {}
                 running = false;
+                int exitCode = -999;
+                try { exitCode = process.exitValue(); } catch (Exception ignored) {}
                 try (FileOutputStream fos = new FileOutputStream(logFile, true)) {
-                    fos.write("=== copyparty exited ===\n".getBytes());
+                    fos.write(("=== copyparty exited, exitCode=" + exitCode + " ===\n").getBytes());
                 } catch (Exception ignored) {}
             }, "cp-log");
             logReader.setDaemon(true);
